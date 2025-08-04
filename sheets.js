@@ -1,9 +1,10 @@
 const { google } = require('googleapis');
-require('dotenv').config();
 
-// Set up authentication using your service account
+// ✅ Use the environment variable directly
+const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+
 const auth = new google.auth.GoogleAuth({
-  keyFile: 'service-account.json', // Make sure this file is in the same folder
+  credentials: serviceAccount,
   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 });
 
@@ -12,22 +13,19 @@ async function getSheetData() {
   const sheets = google.sheets({ version: 'v4', auth: client });
   const sheetId = process.env.GOOGLE_SHEET_ID;
 
-  // The names of your 4 tabs
   const tabs = ['Complete Detail', 'Full Exterior', 'Interior Detail', 'Car Wash'];
-
-  // Object to store tab data
   const allData = {};
 
   for (const tab of tabs) {
     try {
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
-        range: `${tab}!A1:Z1000`, // adjust range if needed
+        range: `${tab}!A1:Z1000`,
       });
 
       const rows = res.data.values;
       if (rows && rows.length > 1) {
-        const headers = rows[0]; // first row = column headers
+        const headers = rows[0];
         const data = rows.slice(1).map(row => {
           const obj = {};
           headers.forEach((header, index) => {
